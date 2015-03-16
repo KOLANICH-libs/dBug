@@ -778,8 +778,144 @@ class dBug
 	//! adds needed JS and CSS sources to page
 	public static function initJSandCSS()
 	{
-		echo <<<SCRIPTS
-			<script language="JavaScript">
+		echo "
+			<script language='JavaScript'>".
+			static::getJS().
+			"</script>
+			<style type='text/css'>\n".
+			static::getCSS().
+			"</style>";
+	}
+	public static function getCSS()
+	{
+		$headerTextColor="#FFFFFF";
+		$textColor="#000000";
+		$colorScheme=array(
+			"array"=>array(
+				"#556832",
+				"#FFFFFF",
+				"#009900",
+				"#CCFFCC"
+			),
+			"object"=>array(
+				"#0000CC",
+				"#FFFFFF",
+				"#4444CC",
+				"#CCDDFF"
+			),
+			"resourceC"=>array(
+				"#884488",
+				"#FFFFFF",
+				"#AA66AA",
+				"#FFDDFF"
+			),
+			"resource"=>array(
+				"#884488",
+				"#FFFFFF",
+				"#AA66AA",
+				"#FFDDFF"
+			),
+			"xml"=>array(
+				"#888888",
+				"#FFFFFF",
+				"#AAAAAA",
+				"#DDDDDD"
+			),
+			"database"=>array(
+				"#8FB6E6",
+				"#07DDF9",
+				"#07F7FB",
+				"#AEF4F5"
+			),
+			"false"=>array(
+				"#CB0101",
+				"#FFFFFF",
+				"#808000",
+				"#F2054C"
+			),
+			"numeric"=>array(
+				"#F9C007",
+				"#FFFFFF",
+				"#F2D904",
+				"#DDDDDD"
+			),
+			"string"=>array(
+				"#556832",
+				"#B3C520",
+				"#808000",
+				"#96A428"
+			),
+			//table.dBug_boolean td.dBug_booleanTrue,table.dBug_boolean td.dBug_booleanFalse { width:46px; text-align: center;border-radius: 45%;}";
+			"boolean"=>array(
+				"#43769F",
+				"#5EA5DE",
+				"#04F258",
+				"#96A428"
+			)
+		);
+		
+		$str=
+		"table.dBug_array,table.dBug_object,table.dBug_resource,table.dBug_resourceC,table.dBug_xml{
+			font-family:Verdana, Arial, Helvetica, sans-serif; color:$textColor; font-size:12px;
+		}
+
+		.dBug_arrayHeader,
+		.dBug_objectHeader,
+		.dBug_resourceHeader,
+		.dBug_resourceCHeader,
+		.dBug_xmlHeader,
+		.dBug_falseHeader,
+		.dBug_numericHeader,
+		.dBug_databaseHeader
+			{ font-weight:bold; color:$headerTextColor; cursor:pointer; }
+
+		.dBug_arrayKey,
+		.dBug_objectKey,
+		.dBug_xmlKey,
+		.dBug_stringHeader,
+		.dBug_booleanHeader,
+		.dBug_ExceptionHeader
+			{ cursor:pointer; }
+
+		.dBug_numeric td{
+			color:black;
+		}
+
+		table.dBug_string,td.dBug_numericHeader{
+			color:white;
+		}
+
+		/*Exception*/
+		table.dBug_Exception {
+			background-color:#AB1212;
+			border-width: 5px;
+			border-color: #FF006E;
+			border-style: dashed;
+			font-weight: bolder;
+			color: #FFF8F8;
+		}
+		table.dBug_Exception td { background-color:#E13636;}
+		table.dBug_Exception td.dBug_ExceptionHeader { background-color:#FF0000; }
+		table.dBug_Exception td.dBug_ExceptionKey { background-color:#E65050; }
+
+
+		table.dBug_boolean td.dBug_booleanFalse,table.dBug_false td.dBug_falseHeader { background-color:#F2054C; }
+		table.dBug_boolean td.dBug_booleanTrue,table.dBug_boolean td.dBug_booleanFalse { width:46px; text-align: center;border-radius: 45%;}";
+		foreach($colorScheme as $type=>$scheme){
+			$str.='
+			
+			/*'.$type.'*/
+			table.dBug_'.$type.' { background-color:'.$scheme[0].';}
+			table.dBug_'.$type.' td { background-color:'.$scheme[1].';}
+			table.dBug_'.$type.' td.dBug_'.$type.'Header { background-color: '.$scheme[2].';}
+			table.dBug_'.$type.',.dBug_object td.dBug_'.$type.'Key { background-color:'.$scheme[3].';}';
+		}
+		return $str;
+	}
+	
+	public static function getJS()
+	{
+		return <<<SCRIPTS
 			/* code modified from ColdFusion's cfdump code */
 				function dBug_toggleRow(source)
 				{
@@ -826,117 +962,6 @@ class dBug
 						}
 					}
 				}
-			</script>
-
-			<style type="text/css">
-				table.dBug_array,table.dBug_object,table.dBug_resource,table.dBug_resourceC,table.dBug_xml{
-					font-family:Verdana, Arial, Helvetica, sans-serif; color:#000000; font-size:12px;
-				}
-
-				.dBug_arrayHeader,
-				.dBug_objectHeader,
-				.dBug_resourceHeader,
-				.dBug_resourceCHeader,
-				.dBug_xmlHeader,
-				.dBug_falseHeader,
-				.dBug_numericHeader,
-				.dBug_databaseHeader
-					{ font-weight:bold; color:#FFFFFF; cursor:pointer; }
-
-				.dBug_arrayKey,
-				.dBug_objectKey,
-				.dBug_xmlKey,
-				.dBug_stringHeader,
-				.dBug_booleanHeader,
-				.dBug_ExceptionHeader
-					{ cursor:pointer; }
-
-				.dBug_numeric td{
-					color:black;
-				}
-
-				table.dBug_string,td.dBug_numericHeader{
-					color:white;
-				}
-
-				/*Exception*/
-				table.dBug_Exception {
-					background-color:#AB1212;
-					border-width: 5px;
-					border-color: #FF006E;
-					border-style: dashed;
-					font-weight: bolder;
-					color: #FFF8F8;
-				}
-				table.dBug_Exception td { background-color:#E13636;}
-				table.dBug_Exception td.dBug_ExceptionHeader { background-color:#FF0000; }
-				table.dBug_Exception td.dBug_ExceptionKey { background-color:#E65050; }
-
-				/* array */
-				table.dBug_array { background-color:#006600; }
-				table.dBug_array td { background-color:#FFFFFF; }
-				table.dBug_array td.dBug_arrayHeader { background-color:#009900; }
-				table.dBug_array,.dBug_object td.dBug_arrayKey { background-color:#CCFFCC; }
-
-				/* object */
-				table.dBug_object { background-color:#0000CC; }
-				table.dBug_object td { background-color:#FFFFFF; }
-				table.dBug_object td.dBug_objectHeader { background-color:#4444CC; }
-				table.dBug_object td.dBug_objectKey { background-color:#CCDDFF; }
-
-				/* resource */
-				table.dBug_resourceC { background-color:#884488; }
-				table.dBug_resourceC td { background-color:#FFFFFF; }
-				table.dBug_resourceC td.dBug_resourceCHeader { background-color:#AA66AA; }
-				table.dBug_resourceC td.dBug_resourceCKey { background-color:#FFDDFF; }
-
-				/* resource */
-				table.dBug_resource { background-color:#884488; }
-				table.dBug_resource td { background-color:#FFFFFF; }
-				table.dBug_resource td.dBug_resourceHeader { background-color:#AA66AA; }
-				table.dBug_resource td.dBug_resourceKey { background-color:#FFDDFF; }
-
-				/* xml */
-				table.dBug_xml { background-color:#888888; }
-				table.dBug_xml td { background-color:#FFFFFF; }
-				table.dBug_xml td.dBug_xmlHeader { background-color:#AAAAAA; }
-				table.dBug_xml td.dBug_xmlKey { background-color:#DDDDDD; }
-
-
-				/* database */
-				table.dBug_database { background-color:#8FB6E6 }
-				table.dBug_database td { background-color:#07DDF9; }
-				table.dBug_database td.dBug_databaseHeader { background-color:#07F7FB; }
-				table.dBug_database td.dBug_databaseKey { background-color:#AEF4F5; }
-
-
-				/* FALSE and boolean false*/
-				table.dBug_false { background-color:#CB0101; }
-				table.dBug_false td { background-color:#FFFFFF; }
-				table.dBug_boolean td.dBug_booleanFalse,table.dBug_false td.dBug_falseHeader { background-color:#F2054C; }
-				table.dBug_false td.dBug_falseKey { background-color:#DDDDDD; }
-
-
-				/* numeric */
-				table.dBug_numeric { background-color:#F9C007; }
-				table.dBug_numeric td { background-color:#FFFFFF; }
-				table.dBug_numeric td.dBug_numericHeader { background-color:#F2D904; }
-				//table.dBug_numeric td.dBug_numericKey { background-color:#DDDDDD; }
-
-
-				/* string */
-				table.dBug_string { background-color:#556832 }
-				table.dBug_string td { background-color:#B3C520;}
-				table.dBug_string td.dBug_stringHeader { background-color:#808000; }
-				table.dBug_string,.dBug_object td.dBug_stringKey { background-color:#96A428; }
-
-				/*boolean*/
-				table.dBug_boolean { background-color:#43769F }
-				table.dBug_boolean td.dBug_booleanHeader { background-color:#5EA5DE; }
-				table.dBug_boolean td.dBug_booleanTrue { background-color:#04F258; }
-				table.dBug_boolean td.dBug_booleanTrue,table.dBug_boolean td.dBug_booleanFalse { width:46px; text-align: center;border-radius: 45%;}
-
-			</style>
 SCRIPTS;
 	}
 }
