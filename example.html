@@ -1,0 +1,973 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>dBug - Examples</title>
+<link href="http://dbug.ospinto.com/css/style.css" rel="stylesheet" type="text/css">
+<script language="JavaScript">
+	/* code modified from ColdFusion's cfdump code */
+		function dBug_toggleRow(source) {
+			var target = (document.all) ? source.parentElement.cells[1] : source.parentNode.lastChild;
+			dBug_toggleTarget(target,dBug_toggleSource(source));
+		}
+		function dBug_toggleSource(source) {
+			if (source.style.fontStyle=='italic') {
+				source.style.fontStyle='normal';
+				source.title='click to collapse';
+				return 'open';
+			} else {
+				source.style.fontStyle='italic';
+				source.title='click to expand';
+				return 'closed';
+			}
+		}
+		function dBug_toggleTarget(target,switchToState) {
+			target.style.display = (switchToState=='open') ? '' : 'none';
+		}
+		function dBug_toggleTable(source) {
+			var switchToState=dBug_toggleSource(source);
+			if(document.all) {
+				var table=source.parentElement.parentElement;
+				for(var i=1;i<table.rows.length;i++) {
+					target=table.rows[i];
+					dBug_toggleTarget(target,switchToState);
+				}
+			}
+			else {
+				var table=source.parentNode.parentNode;
+				for (var i=1;i<table.childNodes.length;i++) {
+					target=table.childNodes[i];
+					if(target.style) {
+						dBug_toggleTarget(target,switchToState);
+					}
+				}
+			}
+		}
+	</script>
+<style type="text/css">
+		table.dBug_array,table.dBug_object,table.dBug_resource,table.dBug_resourceC,table.dBug_xml {
+			font-family:Verdana, Arial, Helvetica, sans-serif; color:#000000; font-size:12px;
+		}
+		.dBug_arrayHeader,
+		.dBug_objectHeader,
+		.dBug_resourceHeader,
+		.dBug_resourceCHeader,
+		.dBug_xmlHeader,
+		.dBug_falseHeader,
+		.dBug_numericHeader,
+		.dBug_databaseHeader
+			{ font-weight:bold; color:#FFFFFF; cursor:pointer; }
+		.dBug_arrayKey,
+		.dBug_objectKey,
+		.dBug_xmlKey 
+			{ cursor:pointer; }
+		/* array */
+		table.dBug_array { background-color:#006600; }
+		table.dBug_array td { background-color:#FFFFFF; }
+		table.dBug_array td.dBug_arrayHeader { background-color:#009900; }
+		table.dBug_array td.dBug_arrayKey { background-color:#CCFFCC; }
+		/* object */
+		table.dBug_object { background-color:#0000CC; }
+		table.dBug_object td { background-color:#FFFFFF; }
+		table.dBug_object td.dBug_objectHeader { background-color:#4444CC; }
+		table.dBug_object td.dBug_objectKey { background-color:#CCDDFF; }
+		/* resource */
+		table.dBug_resourceC { background-color:#884488; }
+		table.dBug_resourceC td { background-color:#FFFFFF; }
+		table.dBug_resourceC td.dBug_resourceCHeader { background-color:#AA66AA; }
+		table.dBug_resourceC td.dBug_resourceCKey { background-color:#FFDDFF; }
+		/* resource */
+		table.dBug_resource { background-color:#884488; }
+		table.dBug_resource td { background-color:#FFFFFF; }
+		table.dBug_resource td.dBug_resourceHeader { background-color:#AA66AA; }
+		table.dBug_resource td.dBug_resourceKey { background-color:#FFDDFF; }
+		/* xml */
+		table.dBug_xml { background-color:#888888; }
+		table.dBug_xml td { background-color:#FFFFFF; }
+		table.dBug_xml td.dBug_xmlHeader { background-color:#AAAAAA; }
+		table.dBug_xml td.dBug_xmlKey { background-color:#DDDDDD; }
+		/* FALSE */
+		table.dBug_false { background-color:#CB0101; }
+		table.dBug_false td { background-color:#FFFFFF; }
+		table.dBug_false td.dBug_falseHeader { background-color:#F2054C; }
+		table.dBug_false td.dBug_falseKey { background-color:#DDDDDD; }
+		/* numeric */
+		table.dBug_numeric { background-color:#F9C007; }
+		table.dBug_numeric td { background-color:#FFFFFF; }
+		table.dBug_numeric td.dBug_numericHeader { background-color:#F2D904; }
+		/*table.dBug_numeric td.dBug_numericKey { background-color:#DDDDDD; }*/
+		/* database */
+		table.dBug_database { background-color:#8FB6E6 }
+		table.dBug_database td { background-color:#07DDF9; }
+		table.dBug_database td.dBug_databaseHeader { background-color:#07F7FB; }
+		table.dBug_database td.dBug_databaseKey { background-color:#AEF4F5; }
+		.codeContainer{text-align:left;}
+		/* string */
+		table.dBug_string { background-color:#556832 }
+		table.dBug_string td { background-color:#B3C520;}
+		table.dBug_string td.dBug_stringHeader { background-color:#808000; }
+		table.dBug_string td.dBug_stringKey { background-color:#96A428; }
+</style>
+</head>
+<body>
+<br>
+<br>
+
+	<div class="allDiv">
+		<ul>
+			<li><a href="#howto">How to use</a></li>
+			<li><a href="#string">String</a></li>
+			<li><a href="#numeric">Numeric</a></li>
+			<li><a href="#false">NULL</a></li>
+			<li><a href="#array">Array</a></li>
+			<li><a href="#object">Object</a></li>
+			<li><a href="#database">Database resource</a></li>
+			<li><a href="#xml">XML Resource</a></li>
+		</ul>
+		<br>
+		<br>
+		<a name="howto"></a>
+		<div class="title">
+			 How to use
+		</div>
+		<p>
+			 Create an instance of the dBug class and pass in the variable for output.
+			<div class='codeContainer'>
+				<div class='codeBlock'>
+					<div class='num'>
+						<code>1<br>
+						 2<br>
+						</code>
+					</div>
+					<div class='code'>
+						<code><span style="color: #000000">
+						<span style="color: #007700">include_once(</span><span style="color: #DD0000">"dBug.php"</span><span style="color: #007700">);<br />
+						 new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$myVariable</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+						</span>
+						</code>
+					</div>
+				</div>
+			</div>
+			<br>
+			 That simple. No need to access specific methods in the class.<br>
+			<br>
+			<strong>NOTE:</strong> It's advisable to create a new instance of the dBug class each time you need to dump a variable. This ensures that all the public class variables are reset. This is really helpful especially when you are trying to dump xml variables.<br>
+			<br>
+			<div class='codeContainer'>
+				<div class='codeBlock'>
+					<div class='num'>
+						<code>1<br>
+						 2<br>
+						</code>
+					</div>
+					<div class='code'>
+						<code><span style="color: #000000">
+						<span style="color: #0000BB"></span><span style="color: #007700">new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$myVariable1</span><span style="color: #007700">);<br />
+						 new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$myVariable2</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+						</span>
+						</code>
+					</div>
+				</div>
+			</div>
+		</p>
+		<a name="string"></a>
+		<div class="title">
+			 String
+		</div>
+		<div class='codeContainer'>
+			<pre style='color:#d1d1d1;background:#000000;'><span style='color:#f6c1d0; background:#281800; '>&lt;?php</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#00c4c4; background:#281800; '>"The quick brown fox jumps over the lazy dog</span><span style='color:#008080; background:#281800; '>\n</span><span style='color:#00c4c4; background:#281800; '>The five boxing wizards jump quickly.</span><span style='color:#008080; background:#281800; '>\r</span><span style='color:#008080; background:#281800; '>\n</span><span style='color:#00c4c4; background:#281800; '>Съешь же ещё этих мягких французских булок, да выпей чаю</span><span style='color:#008080; background:#281800; '>\n</span><span style='color:#00c4c4; background:#281800; '>"</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> dBug</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#f6c1d0; background:#281800; '>?></span>
+			</pre>
+		</div>
+		<div class='outputMsg'>
+			 Output:
+		</div>
+		<div class='output'>
+			<table cellspacing="2" cellpadding="3" class="dBug_string">
+			<tr>
+				<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_stringHeader">$a (string (186))</td>
+			</tr>
+			<tr>
+				<td valign="top" class="dBug_stringKey" onclick="dBug_toggleRow(this)">0</td>
+				<td>The quick brown fox jumps over the lazy dog</td>
+			</tr>
+			<tr>
+				<td valign="top" class="dBug_stringKey" onclick="dBug_toggleRow(this)">1</td>
+				<td>The five boxing wizards jump quickly.</td>
+			</tr>
+			<tr>
+				<td valign="top" class="dBug_stringKey" onclick="dBug_toggleRow(this)">2</td>
+				<td>Съешь же ещё этих мягких французских булок, да выпей чаю</td></tr><tr>
+				<td valign="top" class="dBug_stringKey" onclick="dBug_toggleRow(this)">3</td>
+				<td>[empty line]</td>
+			</tr>
+			</table>
+		</div>
+		<br/><br/>
+		<a name="Numeric"></a>
+		<div class="title">
+			 Numeric
+		</div>
+		<div class='codeContainer'>
+			<pre style='color:#d1d1d1;background:#000000;'>
+				<span style='color:#f6c1d0; background:#281800; '>&lt;?php</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#008c00; background:#281800; '>3</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> dBug</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#f6c1d0; background:#281800; '>?></span>
+			</pre>
+		</div>
+		<div class='output'>
+			<table cellspacing='2' cellpadding='3' class="dBug_numeric">
+			<tr>
+				<td class="dBug_numericHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+					 $a (integer(3))
+				</td>
+			</tr>
+			</table>
+		</div>
+		<br/><br/>
+		<div class='codeContainer'>
+			<pre style='color:#d1d1d1;background:#000000;'>
+				<span style='color:#f6c1d0; background:#281800; '>&lt;?php</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#009f00; background:#281800; '>3.5</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> dBug</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#f6c1d0; background:#281800; '>?></span>
+			</pre>
+		</div>
+		<div class='output'>
+			<table cellspacing='2' cellpadding='3' class="dBug_numeric">
+			<tr>
+				<td class="dBug_numericHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+					 $a (double(3.5))
+				</td>
+			</tr>
+			</table>
+		</div>
+		<br/><br/>
+		<a name="false"></a>
+		<div class="title">
+			 NULL
+		</div>
+		<pre style='color:#d1d1d1;background:#000000;'>
+			<span style='color:#f6c1d0; background:#281800; '>&lt;?php</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#e66170; background:#281800; font-weight:bold; '>null</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> dBug</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#ffffff; background:#281800; '>$a</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+			<span style='color:#f6c1d0; background:#281800; '>?></span>
+		</pre>
+		<div class='outputMsg'>
+			<div class='output'>
+				<table cellspacing='2' cellpadding='3' class="dBug_false">
+				<tr>
+					<td class="dBug_falseHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+						 $a (NULL)
+					</td>
+				</tr>
+				</table>
+			</div>
+		</div>
+		<br/><br/>
+		<a name="array"></a>
+		<div class="title">
+			 Array
+		</div>
+		<div class='codeContainer'>
+			<div class='codeBlock'>
+				<div class='num'>
+					<code>1<br>
+					 2<br>
+					 3<br>
+					 4<br>
+					 5<br>
+					 6<br>
+					 7<br>
+					 8<br>
+					 9<br>
+					</code>
+				</div>
+				<div class='code'>
+					<code><span style="color: #000000">
+					<span style="color: #0000BB">$variable&nbsp;</span><span style="color: #007700">=&nbsp;array(<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"first"</span><span style="color: #007700">=&gt;</span><span style="color: #DD0000">"1"</span><span style="color: #007700">,<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"second"</span><span style="color: #007700">,<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"third"</span><span style="color: #007700">=&gt;array(<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"inner&nbsp;third&nbsp;1"</span><span style="color: #007700">,<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"inner&nbsp;third&nbsp;2"</span><span style="color: #007700">=&gt;</span><span style="color: #DD0000">"yeah"</span><span style="color: #007700">),<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"fourth"</span><span style="color: #007700">);<br />
+					<br />
+					 new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$variable</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+					</span>
+					</code>
+				</div>
+			</div>
+		</div>
+		<div class='outputMsg'>
+			 Output:
+		</div>
+		<div class='output'>
+			<table cellspacing='2' cellpadding='3' class="dBug_array">
+			<tr>
+				<td class="dBug_arrayHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+					 $variable (array)
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+					 first
+				</td>
+				<td>
+					 1
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+					 0
+				</td>
+				<td>
+					 second
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+					 third
+				</td>
+				<td>
+					<table cellspacing='2' cellpadding='3' class="dBug_array">
+					<tr>
+						<td class="dBug_arrayHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+							 array
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+							 0
+						</td>
+						<td>
+							 inner third 1
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+							 inner third 2
+						</td>
+						<td>
+							 yeah
+						</td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+					 1
+				</td>
+				<td>
+					 fourth
+				</td>
+			</tr>
+			</table>
+		</div>
+		<br/><br/>
+		<a name="object"></a>
+		<div class="title">
+			 Object
+		</div>
+		<div class='codeContainer'>
+			<div class='codeBlock'>
+				<div class='num'>
+					<code>1<br>
+					 2<br>
+					 3<br>
+					 4<br>
+					 5<br>
+					 6<br>
+					 7<br>
+					 8<br>
+					 9<br>
+					 10<br>
+					 11<br>
+					 12<br>
+					 13<br>
+					 14<br>
+					 15<br>
+					 16<br>
+					 17<br>
+					 18<br>
+					 19<br>
+					 20<br>
+					 21<br>
+					</code>
+				</div>
+				<div class='code'>
+					<code><span style="color: #000000">
+					<span style="color: #0000BB"></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Vegetable&nbsp;</span><span style="color: #007700">{<br />
+					<br />
+					 &nbsp;&nbsp;&nbsp;var&nbsp;</span><span style="color: #0000BB">$edible</span><span style="color: #007700">;<br />
+					 &nbsp;&nbsp;&nbsp;var&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #007700">;<br />
+					<br />
+					 &nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">Vegetable</span><span style="color: #007700">(</span><span style="color: #0000BB">$edible</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #007700">=</span><span style="color: #DD0000">"green"</span><span style="color: #007700">)&nbsp;{<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">edible&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$edible</span><span style="color: #007700">;<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">color&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #007700">;<br />
+					 &nbsp;&nbsp;&nbsp;}<br />
+					<br />
+					 &nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">is_edible</span><span style="color: #007700">()&nbsp;{<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">edible</span><span style="color: #007700">;<br />
+					 &nbsp;&nbsp;&nbsp;}<br />
+					<br />
+					 &nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">what_color</span><span style="color: #007700">()&nbsp;{<br />
+					 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">color</span><span style="color: #007700">;<br />
+					 &nbsp;&nbsp;&nbsp;}<br />
+					 &nbsp;&nbsp;&nbsp;<br />
+					 }<br />
+					</span><span style="color: #0000BB">$variable</span><span style="color: #007700">=new&nbsp;</span><span style="color: #0000BB">Vegetable</span><span style="color: #007700">(</span><span style="color: #DD0000">"spinach"</span><span style="color: #007700">);<br />
+					 new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$variable</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+					</span>
+					</code>
+				</div>
+			</div>
+		</div>
+		<div class='outputMsg'>
+			 Output:
+		</div>
+		<div class='output'>
+			<table cellspacing='2' cellpadding='3' class="dBug_object">
+			<tr>
+				<td class="dBug_objectHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+					 $variable (object)
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_objectKey">
+					 edible
+				</td>
+				<td>
+					 spinach
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_objectKey">
+					 color
+				</td>
+				<td>
+					 green
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_objectKey">
+					 vegetable
+				</td>
+				<td>
+					 [function]
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_objectKey">
+					 is_edible
+				</td>
+				<td>
+					 [function]
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_objectKey">
+					 what_color
+				</td>
+				<td>
+					 [function]
+				</td>
+			</tr>
+			</table>
+		</div>
+		<br>
+		<br>
+		<a name="database"></a>
+		<div class="title">
+			 Database resource
+		</div>
+		<p>
+			 When a database resource is dumped, mouse-overing the column names (example: ID, firstname,...) will display the database column type information in alt tags.
+			<div class='codeContainer'>
+				<div class='codeBlock'>
+					<div class='num'>
+						<code>1<br>
+						 2<br>
+						 3<br>
+						 4<br>
+						 5<br>
+						 6<br>
+						 7<br>
+						</code>
+					</div>
+					<div class='code'>
+						<code><span style="color: #000000">
+						<span style="color: #0000BB">$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">'localhost'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'mysql_user'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'mysql_password'</span><span style="color: #007700">);<br />
+						 if&nbsp;(!</span><span style="color: #0000BB">$link</span><span style="color: #007700">)<br />
+						 &nbsp;&nbsp;&nbsp;die(</span><span style="color: #DD0000">'Could&nbsp;not&nbsp;connect:&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">mysql_error</span><span style="color: #007700">());<br />
+						<br />
+						</span><span style="color: #0000BB">mysql_select_db</span><span style="color: #007700">(</span><span style="color: #DD0000">'mydb'</span><span style="color: #007700">);<br />
+						</span><span style="color: #0000BB">$result&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_query</span><span style="color: #007700">(</span><span style="color: #DD0000">'select&nbsp;*&nbsp;from&nbsp;empinfo'</span><span style="color: #007700">);<br />
+						 new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$result</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+						</span>
+						</code>
+					</div>
+				</div>
+			</div>
+			<div class='outputMsg'>
+				 Output:
+			</div>
+			<div class='output'>
+				<table cellspacing='2' cellpadding='3' class="dBug_resourceC">
+				<tr>
+					<td class="dBug_resourceCHeader" colspan='1' onclick='dBug_toggleTable(this)'>
+						 $result (resource)
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<table cellspacing='2' cellpadding='3' class="dBug_database">
+						<tr>
+							<td class="dBug_databaseHeader" colspan='7' onclick='dBug_toggleTable(this)'>
+								 mysql result
+							</td>
+						</tr>
+						<tr>
+							<td class="dBug_databaseKey">
+								 &nbsp;
+							</td>
+							<td class="dBug_databaseKey" title="int not_null primary_key auto_increment ">
+								 ID
+							</td>
+							<td class="dBug_databaseKey" title="blob not_null blob ">
+								 firstname
+							</td>
+							<td class="dBug_databaseKey" title="blob not_null blob ">
+								 lastname
+							</td>
+							<td class="dBug_databaseKey" title="int not_null ">
+								 age
+							</td>
+							<td class="dBug_databaseKey" title="blob not_null blob ">
+								 city
+							</td>
+							<td class="dBug_databaseKey" title="blob not_null blob ">
+								 state
+							</td>
+						</tr>
+						<tr>
+							<td class="dBug_databaseKey">
+								 1
+							</td>
+							<td>
+								 99980
+							</td>
+							<td>
+								 John
+							</td>
+							<td>
+								 Jones
+							</td>
+							<td>
+								 45
+							</td>
+							<td>
+								 Payson
+							</td>
+							<td>
+								 Arizona
+							</td>
+						</tr>
+						<tr>
+							<td class="dBug_databaseKey">
+								 2
+							</td>
+							<td>
+								 99982
+							</td>
+							<td>
+								 Mary
+							</td>
+							<td>
+								 Jones
+							</td>
+							<td>
+								 25
+							</td>
+							<td>
+								 Payson
+							</td>
+							<td>
+								 Arizona
+							</td>
+						</tr>
+						<tr>
+							<td class="dBug_databaseKey">
+								 3
+							</td>
+							<td>
+								 88232
+							</td>
+							<td>
+								 Eric
+							</td>
+							<td>
+								 Howell
+							</td>
+							<td>
+								 32
+							</td>
+							<td>
+								 San Diego
+							</td>
+							<td>
+								 California
+							</td>
+						</tr>
+						<tr>
+							<td class="dBug_databaseKey">
+								 4
+							</td>
+							<td>
+								 88233
+							</td>
+							<td>
+								 Mary Ann
+							</td>
+							<td>
+								 Edwards
+							</td>
+							<td>
+								 32
+							</td>
+							<td>
+								 Phoenix
+							</td>
+							<td>
+								 Arizona
+							</td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+				</table>
+			</div>
+			<br>
+			<br>
+		</p>
+		<br/>
+		<div class='codeContainer'>
+			<pre style='color:#d1d1d1;background:#000000;'>
+				<span style='color:#f6c1d0; background:#281800; '>&lt;?php</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#ffffff; background:#281800; '>$</span><span style='color:#e66170; background:#281800; font-weight:bold; '>this</span><span style='color:#d2cd86; background:#281800; '>-></span><span style='color:#ffffff; background:#281800; '>base</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> SQLite3</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#e66170; background:#281800; font-weight:bold; '>self</span><span style='color:#b060b0; background:#281800; '>:</span><span style='color:#b060b0; background:#281800; '>:</span><span style='color:#ffffff; background:#281800; '>$baseFileName</span><span style='color:#d2cd86; background:#281800; '>,</span><span style='color:#008c00; background:#281800; '>0666</span><span style='color:#d2cd86; background:#281800; '>,</span><span style='color:#ffffff; background:#281800; '>$baseerr</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#ffffff; background:#281800; '>$res</span><span style='color:#d2cd86; background:#281800; '>=</span><span style='color:#ffffff; background:#281800; '>$</span><span style='color:#e66170; background:#281800; font-weight:bold; '>this</span><span style='color:#d2cd86; background:#281800; '>-></span><span style='color:#ffffff; background:#281800; '>base</span><span style='color:#d2cd86; background:#281800; '>-</span><span style='color:#d2cd86; background:#281800; '>></span><span style='color:#ffffff; background:#281800; '>query</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#00c4c4; background:#281800; '>"SELECT * FROM `sqlite_master` WHERE `type`='table' AND `name`='tree';"</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#e66170; background:#281800; font-weight:bold; '>new</span><span style='color:#ffffff; background:#281800; '> dBug</span><span style='color:#d2cd86; background:#281800; '>(</span><span style='color:#ffffff; background:#281800; '>$res</span><span style='color:#d2cd86; background:#281800; '>)</span><span style='color:#b060b0; background:#281800; '>;</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#d2cd86; background:#281800; '>.</span><span style='color:#ffffff; background:#281800; '></span>
+				<span style='color:#f6c1d0; background:#281800; '>?></span>
+			</pre>
+		</div>
+		<div class='output'>
+			<table cellspacing="2" cellpadding="3" class="dBug_database">
+			<tr>
+				<td onclick="dBug_toggleTable(this)" colspan="6" class="dBug_databaseHeader">
+					 $res (SQLite3)
+				</td>
+			</tr>
+			<tr>
+				<td class="dBug_databaseKey">
+					 &nbsp;
+				</td>
+				<td title="5" class="dBug_databaseKey">
+					 type
+				</td>
+				<td title="5" class="dBug_databaseKey">
+					 name
+				</td>
+				<td title="5" class="dBug_databaseKey">
+					 tbl_name
+				</td>
+				<td title="5" class="dBug_databaseKey">
+					 rootpage
+				</td>
+				<td title="5" class="dBug_databaseKey">
+					 sql
+				</td>
+			</tr>
+			<tr>
+				<td class="dBug_resourceKey">
+					 1
+				</td>
+				<td>
+					 table
+				</td>
+				<td>
+					 tree
+				</td>
+				<td>
+					 tree
+				</td>
+				<td>
+					 2
+				</td>
+				<td>
+					 CREATE TABLE "tree" ( "id" INTEGER NOT NULL, "crc32" INTEGER NOT NULL, "parent" INTEGER NOT NULL, "name" VARCHAR(256) NOT NULL, PRIMARY KEY ("id"), UNIQUE ("id"), UNIQUE ("crc32"), UNIQUE ("parent") )
+				</td>
+			</tr>
+			</table>
+		</div>
+		<a name="xml"></a>
+		<div class="title">
+			 XML Resource
+		</div>
+		<p>
+			 When an xml variable is dumped as is, it is recognized as a string. This is even so with PHP's var_dump. The dBug class has a second optional parameter where you pass in the string "xml".
+			<div class='codeContainer'>
+				<div class='codeBlock'>
+					<div class='num'>
+						<code>1<br>
+						 2<br>
+						</code>
+					</div>
+					<div class='code'>
+						<code><span style="color: #000000">
+						<span style="color: #0000BB">$xmlData&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"msc/data.xml"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//path&nbsp;to&nbsp;xml&nbsp;file;<br />
+						</span><span style="color: #007700">new&nbsp;</span><span style="color: #0000BB">dBug</span><span style="color: #007700">(</span><span style="color: #0000BB">$xmlData</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"xml"</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB"></span>
+						</span>
+						</code>
+					</div>
+				</div>
+			</div>
+			<div class='outputMsg'>
+				 Output:
+			</div>
+			<div class='output'>
+				<table cellspacing='2' cellpadding='3' class="dBug_xml">
+				<tr>
+					<td class="dBug_xmlHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+						 $xmlData,"xml" (xml document)
+					</td>
+				</tr>
+				<tr>
+					<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+						 xmlRoot
+					</td>
+					<td>
+						<table cellspacing='2' cellpadding='3' class="dBug_xml">
+						<tr>
+							<td class="dBug_xmlHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+								 xml element
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+								 xmlName
+							</td>
+							<td>
+								<strong>chapter</strong>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+								 xmlAttributes
+							</td>
+							<td>
+								 &nbsp;
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+								 xmlText
+							</td>
+							<td>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+								 xmlComment
+							</td>
+							<td>
+								 &nbsp;
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+								 xmlChildren
+							</td>
+							<td>
+								<table cellspacing='2' cellpadding='3' class="dBug_xml">
+								<tr>
+									<td class="dBug_xmlHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+										 xml element
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlName
+									</td>
+									<td>
+										<strong>TITLE</strong>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlAttributes
+									</td>
+									<td>
+										 &nbsp;
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlText
+									</td>
+									<td>
+										 This is my title
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlComment
+									</td>
+									<td>
+										 &nbsp;
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlChildren
+									</td>
+									<td>
+									</td>
+								</tr>
+								</table>
+								<table cellspacing='2' cellpadding='3' class="dBug_xml">
+								<tr>
+									<td class="dBug_xmlHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+										 xml element
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlName
+									</td>
+									<td>
+										<strong>tgroup</strong>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlAttributes
+									</td>
+									<td>
+										<table cellspacing='2' cellpadding='3' class="dBug_array">
+										<tr>
+											<td class="dBug_arrayHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+												 array
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+												 cols
+											</td>
+											<td>
+												 3
+											</td>
+										</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlText
+									</td>
+									<td>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlComment
+									</td>
+									<td>
+										 Another comment here on second line
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+										 xmlChildren
+									</td>
+									<td>
+										<table cellspacing='2' cellpadding='3' class="dBug_xml">
+										<tr>
+											<td class="dBug_xmlHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+												 xml element
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+												 xmlName
+											</td>
+											<td>
+												<strong>entry</strong>
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+												 xmlAttributes
+											</td>
+											<td>
+												<table cellspacing='2' cellpadding='3' class="dBug_array">
+												<tr>
+													<td class="dBug_arrayHeader" colspan='2' onclick='dBug_toggleTable(this)'>
+														 array
+													</td>
+												</tr>
+												<tr>
+													<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_arrayKey">
+														 morerows
+													</td>
+													<td>
+														 1
+													</td>
+												</tr>
+												</table>
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+												 xmlText
+											</td>
+											<td>
+												 b1
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+												 xmlComment
+											</td>
+											<td>
+												 &nbsp;
+											</td>
+										</tr>
+										<tr>
+											<td valign="top" onclick='dBug_toggleRow(this)' class="dBug_xmlKey">
+												 xmlChildren
+											</td>
+											<td>
+											</td>
+										</tr>
+										</table>
+									</td>
+								</tr>
+								</table>
+							</td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+				</table>
+			</div>
+		</p>
+	</div>
+</div>
+</body>
+</html>

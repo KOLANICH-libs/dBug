@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+
+  <title>KOLANICH/dBug @ GitHub</title>
+
+  <style type="text/css">
+    body {
+      margin-top: 1.0em;
+      background-color: #b15c27;
+      font-family: Helvetica, Arial, FreeSans, san-serif;
+      color: #ffffff;
+    }
+    #container {
+      margin: 0 auto;
+      width: 700px;
+    }
+    h1 { font-size: 3.8em; color: #4ea3d8; margin-bottom: 3px; }
+    h1 .small { font-size: 0.4em; }
+    h1 a { text-decoration: none }
+    h2 { font-size: 1.5em; color: #4ea3d8; }
+    h3 { text-align: center; color: #4ea3d8; }
+    a { color: #4ea3d8; }
+    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+    .download { float: right; }
+    pre { background: #000; color: #fff; padding: 15px;}
+    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+    .footer { text-align:center; padding-top:30px; font-style: italic; }
+  </style>
+  <script language="JavaScript">
+	/* code modified from ColdFusion's cfdump code */
+		function dBug_toggleRow(source) {
+			var target = (document.all) ? source.parentElement.cells[1] : source.parentNode.lastChild;
+			dBug_toggleTarget(target,dBug_toggleSource(source));
+		}
+		function dBug_toggleSource(source) {
+			if (source.style.fontStyle=='italic') {
+				source.style.fontStyle='normal';
+				source.title='click to collapse';
+				return 'open';
+			} else {
+				source.style.fontStyle='italic';
+				source.title='click to expand';
+				return 'closed';
+			}
+		}
+		function dBug_toggleTarget(target,switchToState) {
+			target.style.display = (switchToState=='open') ? '' : 'none';
+		}
+		function dBug_toggleTable(source) {
+			var switchToState=dBug_toggleSource(source);
+			if(document.all) {
+				var table=source.parentElement.parentElement;
+				for(var i=1;i<table.rows.length;i++) {
+					target=table.rows[i];
+					dBug_toggleTarget(target,switchToState);
+				}
+			}
+			else {
+				var table=source.parentNode.parentNode;
+				for (var i=1;i<table.childNodes.length;i++) {
+					target=table.childNodes[i];
+					if(target.style) {
+						dBug_toggleTarget(target,switchToState);
+					}
+				}
+			}
+		}
+	</script>
+	<style type="text/css">
+		table.dBug_array,table.dBug_object,table.dBug_resource,table.dBug_resourceC,table.dBug_xml {
+			font-family:Verdana, Arial, Helvetica, sans-serif; color:#000000; font-size:12px;
+		}
+		
+		.dBug_arrayHeader,
+		.dBug_objectHeader,
+		.dBug_resourceHeader,
+		.dBug_resourceCHeader,
+		.dBug_xmlHeader,
+		.dBug_falseHeader,
+		.dBug_numericHeader,
+		.dBug_databaseHeader
+			{ font-weight:bold; color:#FFFFFF; cursor:pointer; }
+		
+		.dBug_arrayKey,
+		.dBug_objectKey,
+		.dBug_xmlKey 
+			{ cursor:pointer; }
+			
+		/* array */
+		table.dBug_array { background-color:#006600; }
+		table.dBug_array td { background-color:#FFFFFF; }
+		table.dBug_array td.dBug_arrayHeader { background-color:#009900; }
+		table.dBug_array td.dBug_arrayKey { background-color:#CCFFCC; }
+		
+		/* object */
+		table.dBug_object { background-color:#0000CC; }
+		table.dBug_object td { background-color:#FFFFFF; }
+		table.dBug_object td.dBug_objectHeader { background-color:#4444CC; }
+		table.dBug_object td.dBug_objectKey { background-color:#CCDDFF; }
+		
+		/* resource */
+		table.dBug_resourceC { background-color:#884488; }
+		table.dBug_resourceC td { background-color:#FFFFFF; }
+		table.dBug_resourceC td.dBug_resourceCHeader { background-color:#AA66AA; }
+		table.dBug_resourceC td.dBug_resourceCKey { background-color:#FFDDFF; }
+		
+		/* resource */
+		table.dBug_resource { background-color:#884488; }
+		table.dBug_resource td { background-color:#FFFFFF; }
+		table.dBug_resource td.dBug_resourceHeader { background-color:#AA66AA; }
+		table.dBug_resource td.dBug_resourceKey { background-color:#FFDDFF; }
+		
+		/* xml */
+		table.dBug_xml { background-color:#888888; }
+		table.dBug_xml td { background-color:#FFFFFF; }
+		table.dBug_xml td.dBug_xmlHeader { background-color:#AAAAAA; }
+		table.dBug_xml td.dBug_xmlKey { background-color:#DDDDDD; }
+		
+		/* FALSE and boolean false*/
+		table.dBug_false { background-color:#CB0101; }
+		table.dBug_false td { background-color:#FFFFFF; }
+		table.dBug_boolean td.dBug_booleanFalse,table.dBug_false td.dBug_falseHeader { background-color:#F2054C; }
+		table.dBug_false td.dBug_falseKey { background-color:#DDDDDD; }
+		
+		/* numeric */
+		table.dBug_numeric { background-color:#F9C007; }
+		table.dBug_numeric td { background-color:#FFFFFF; }
+		table.dBug_numeric td.dBug_numericHeader { background-color:#F2D904; }
+		//table.dBug_numeric td.dBug_numericKey { background-color:#DDDDDD; }
+		
+		/* database */
+		table.dBug_database { background-color:#8FB6E6 }
+		table.dBug_database td { background-color:#07DDF9; }
+		table.dBug_database td.dBug_databaseHeader { background-color:#07F7FB; }
+		table.dBug_database td.dBug_databaseKey { background-color:#AEF4F5; }
+		
+		/* string */
+		table.dBug_string { background-color:#556832 }
+		table.dBug_string td { background-color:#B3C520;}
+		table.dBug_string td.dBug_stringHeader { background-color:#808000; }
+		table.dBug_string td.dBug_stringKey { background-color:#96A428; }
+		
+		/*boolean*/
+		table.dBug_boolean { background-color:#43769F }
+		table.dBug_boolean td.dBug_booleanHeader { background-color:#5EA5DE; }
+		table.dBug_boolean td.dBug_booleanTrue { background-color:#04F258; }
+		table.dBug_boolean td.dBug_booleanTrue,table.dBug_boolean td.dBug_booleanFalse { width:46px; text-align: center;border-radius: 45%;}
+		
+	</style>
+</head>
+
+<body>
+  <a href="https://github.com/KOLANICH/dBug"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+
+  <div id="container">
+
+    <div class="download">
+      <a href="https://github.com/KOLANICH/dBug/zipball/master">
+        <img border="0" width="90" src="https://github.com/images/modules/download/zip.png"></a>
+      <a href="https://github.com/KOLANICH/dBug/tarball/master">
+        <img border="0" width="90" src="https://github.com/images/modules/download/tar.png"></a>
+    </div>
+
+    <h1><a href="https://github.com/KOLANICH/dBug">dBug</a>
+      <span class="small">by <a href="https://github.com/KOLANICH">KOLANICH</a></span></h1>
+
+    <div class="description">
+      My mod of dBug
+    </div>
+	<table cellspacing="2" cellpadding="3" class="dBug_array">
+		<tr>
+			<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_arrayHeader">$dBug (array)</td>
+		</tr>
+		<tr>
+			<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">is a</td>
+			<td>
+				<table cellspacing="2" cellpadding="3" class="dBug_string">
+					<tr>
+						<td onclick="dBug_toggleTable(this)" class="dBug_stringHeader">string [24]</td>
+						<td valign="top" class="dBug_string" onclick="dBug_toggleRow(this)">debugging output library</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">which will</td>
+			<td>
+				<table cellspacing="2" cellpadding="3" class="dBug_string">
+					<tr>
+						<td onclick="dBug_toggleTable(this)" class="dBug_stringHeader">string [19]</td>
+						<td valign="top" class="dBug_string" onclick="dBug_toggleRow(this)">make your debugging your PHP code efficiently</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">how many % cooler</td>
+			<td>
+				<table cellspacing="2" cellpadding="3" class="dBug_numeric">
+					<tr>
+						<td onclick="dBug_toggleTable(this)" class="dBug_numericHeader">double</td>
+						<td valign="top" class="dBug_numeric" onclick="dBug_toggleRow(this)">1000.1</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">really</td>
+			<td>
+			<table cellspacing="2" cellpadding="3" class="dBug_boolean">
+				<tr>
+					<td onclick="dBug_toggleTable(this)" class="dBug_booleanHeader">boolean</td>
+					<td valign="top" class="dBug_booleanTrue" onclick="dBug_toggleRow(this)">TRUE</td>
+				</tr>
+			</table>
+		</td>
+		</tr>
+		<tr>
+			<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">providing visualization of</td>
+			<td>
+				<table cellspacing="2" cellpadding="3" class="dBug_object">
+					<tr>
+						<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_objectHeader">object</td>
+					</tr>
+					<tr>
+						<td valign="top" class="dBug_objectKey" onclick="dBug_toggleRow(this)">objects</td>
+						<td>
+							<table cellspacing="2" cellpadding="3" class="dBug_object">
+								<tr>
+									<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_objectHeader">object</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_objectKey" onclick="dBug_toggleRow(this)">including_database_results</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_database">
+											<tr>
+												<td class="dBug_databaseHeader" colspan="6" onclick="dBug_toggleTable(this)">
+												 SQLite3
+												</td>
+											</tr>
+											<tr>
+												<td class="dBug_databaseKey">
+												 &nbsp;
+												</td>
+												<td title="5" class="dBug_databaseKey">test1</td>
+												<td title="5" class="dBug_databaseKey">test2</td>
+												<td title="5" class="dBug_databaseKey">test3</td>
+												<td title="5" class="dBug_databaseKey">test4</td>
+												<td title="5" class="dBug_databaseKey">test5</td>
+											</tr>
+											<tr>
+												<td class="dBug_resourceKey">
+												 1
+												</td>
+												<td>ololo</td>
+												<td>trololo</td>
+												<td>eee</td>
+												<td>haha</td>
+												<td>test</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_objectKey" onclick="dBug_toggleRow(this)">__construct</td>
+									<td>[function]</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" class="dBug_objectKey" onclick="dBug_toggleRow(this)">arrays</td>
+						<td>
+							<table cellspacing="2" cellpadding="3" class="dBug_array">
+								<tr>
+									<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_arrayHeader">array</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">0</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_string">
+											<tr>
+												<td onclick="dBug_toggleTable(this)" class="dBug_stringHeader">string [2]</td>
+												<td valign="top" class="dBug_string" onclick="dBug_toggleRow(this)">;)</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" class="dBug_objectKey" onclick="dBug_toggleRow(this)">and_even_resources_of_different_types</td>
+						<td>
+							<table cellspacing="2" cellpadding="3" class="dBug_array">
+								<tr>
+									<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_arrayHeader">array</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">curl</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_resourceC">
+											<tr>
+												<td onclick="dBug_toggleTable(this)" colspan="1" class="dBug_resourceCHeader">resource</td>
+											</tr>
+											<tr>
+												<td>
+													<table cellspacing="2" cellpadding="3" class="dBug_resource">
+														<tr>
+															<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_resourceHeader">curl easy handle</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">url</td>
+															<td>http://localhost.com/</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">filetime</td>
+															<td>-1</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">total_time</td>
+															<td>20.97</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">namelookup_time</td>
+															<td>0.05</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">download_content_length</td>
+															<td>-1</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">upload_content_length</td>
+															<td>-1</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">primary_ip</td>
+															<td>00.00.00.00</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">primary_port</td>
+															<td>80</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">gd</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_resourceC">
+											<tr>
+												<td onclick="dBug_toggleTable(this)" colspan="1" class="dBug_resourceCHeader">resource</td>
+											</tr>
+											<tr>
+												<td>
+													<table cellspacing="2" cellpadding="3" class="dBug_resource">
+														<tr>
+															<td onclick="dBug_toggleTable(this)" colspan="2" class="dBug_resourceHeader">gd</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">Width</td>
+															<td>2</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">Height</td>
+															<td>2</td>
+														</tr>
+														<tr>
+															<td valign="top" class="dBug_resourceKey" onclick="dBug_toggleRow(this)">Colors</td>
+															<td>0</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">xml</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_string">
+											<tr>
+												<td onclick="dBug_toggleTable(this)" class="dBug_stringHeader">string [9]</td>
+												<td valign="top" class="dBug_string" onclick="dBug_toggleRow(this)">too large</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top" class="dBug_arrayKey" onclick="dBug_toggleRow(this)">sql</td>
+									<td>
+										<table cellspacing="2" cellpadding="3" class="dBug_resourceC">
+											<tr>
+												<td class="dBug_resourceCHeader" colspan="1" onclick="dBug_toggleTable(this)">
+													 $result (resource)
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<table cellspacing="2" cellpadding="3" class="dBug_database">
+														<tr>
+															<td class="dBug_databaseHeader" colspan="7" onclick="dBug_toggleTable(this)">
+																 mysql result
+															</td>
+														</tr>
+														<tr>
+															<td class="dBug_databaseKey">
+																 &nbsp;
+															</td>
+															<td class="dBug_databaseKey" title="int not_null primary_key auto_increment ">
+																 ID
+															</td>
+															<td class="dBug_databaseKey" title="blob not_null blob ">
+																 firstname
+															</td>
+															<td class="dBug_databaseKey" title="blob not_null blob ">
+																 lastname
+															</td>
+															<td class="dBug_databaseKey" title="int not_null ">
+																 age
+															</td>
+															<td class="dBug_databaseKey" title="blob not_null blob ">
+																 city
+															</td>
+															<td class="dBug_databaseKey" title="blob not_null blob ">
+																 state
+															</td>
+														</tr>
+														<tr>
+															<td class="dBug_databaseKey">
+																 1
+															</td>
+															<td>
+																 99980
+															</td>
+															<td>
+																 John
+															</td>
+															<td>
+																 Jones
+															</td>
+															<td>
+																 45
+															</td>
+															<td>
+																 Payson
+															</td>
+															<td>
+																 Arizona
+															</td>
+														</tr>
+														<tr>
+															<td class="dBug_databaseKey">
+																 2
+															</td>
+															<td>
+																 99982
+															</td>
+															<td>
+																 Mary
+															</td>
+															<td>
+																 Jones
+															</td>
+															<td>
+																 25
+															</td>
+															<td>
+																 Payson
+															</td>
+															<td>
+																 Arizona
+															</td>
+														</tr>
+														<tr>
+															<td class="dBug_databaseKey">
+																 3
+															</td>
+															<td>
+																 88232
+															</td>
+															<td>
+																 Eric
+															</td>
+															<td>
+																 Howell
+															</td>
+															<td>
+																 32
+															</td>
+															<td>
+																 San Diego
+															</td>
+															<td>
+																 California
+															</td>
+														</tr>
+														<tr>
+															<td class="dBug_databaseKey">
+																 4
+															</td>
+															<td>
+																 88233
+															</td>
+															<td>
+																 Mary Ann
+															</td>
+															<td>
+																 Edwards
+															</td>
+															<td>
+																 32
+															</td>
+															<td>
+																 Phoenix
+															</td>
+															<td>
+																 Arizona
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+    
+      <p>Initially developed by <a href="http://dbug.ospinto.com/">ospinto</a> , the library has not some functionallity I need.</p>
+		<p>Doxygen docs are <a href="./doxygen/html/index.html">here</a></p>
+
+    
+
+    
+      <h2>Install</h2>
+      <p>Copy dbug.php somewhere in public_html, include and use.</p>
+	  
+	  
+	  <h2>Usage</h2>
+      <p>Examples (mainly by ospinto) are <a href="example.html">here</a>.</p>
+      <p>Sorry for bad design.</p>
+
+    
+      <h2>License</h2>
+      <p><a href="https://www.gnu.org/licenses/gpl-2.0.html">GNU GPL v2</a></p>
+    
+
+    
+      <h2>Authors</h2>
+      <p>KOLANICH
+<br/>Kwaku Otchere (ospinto@hotmail.com) //former author</p>
+    
+
+    
+      <h2>Contact</h2>
+      <p>KOLANICH
+<br/>      </p>
+    
+
+    <h2>Download</h2>
+    <p>
+      You can download this project in either
+      <a href="https://github.com/KOLANICH/dBug/zipball/master">zip</a> or
+      <a href="https://github.com/KOLANICH/dBug/tarball/master">tar formats.
+    </p>
+    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
+      by running:
+      <pre>$ git clone git://github.com/KOLANICH/dBug</pre>
+    </p>
+
+    <div class="footer">
+      get the source code on GitHub : <a href="https://github.com/KOLANICH/dBug">KOLANICH/dBug</a>
+    </div>
+
+  </div>
+
+</body>
+</html>
